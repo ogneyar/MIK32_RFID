@@ -16,6 +16,7 @@ void SPI_SendData(uint8_t Data);
 void SPI_SendArray(uint8_t master_output[], uint8_t length);
 uint8_t SPI_ReceiveData(void);
 uint8_t SPI_transfer(uint8_t data);
+HAL_StatusTypeDef SPI_Exchange(SPI_HandleTypeDef *hspi, uint8_t TransmitBytes[], uint8_t ReceiveBytes[], uint32_t DataSize, uint32_t Timeout);
 
 
 //

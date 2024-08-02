@@ -35,7 +35,7 @@ int main(void)
             delay(1);
             digitalWrite(RST_PORT, RST_PIN, LOW);   // Отпускаем сброс
             PCD_Init();                             // Инициализируем заного
-            // xprintf("Reboot\r\n");
+            xprintf("Reboot\r\n");
             timer = const_timer;
         }
 
