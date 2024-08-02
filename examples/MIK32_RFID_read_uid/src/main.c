@@ -22,8 +22,6 @@ int main(void)
       key.keyByte[i] = 0xAB;            // Новый ключ 0xABABABABABAB
     }
 
-    // while(1) { ledBlink(); ledButton(); }
-
     int const_timer = 100;
     int timer = const_timer;
 
@@ -35,7 +33,7 @@ int main(void)
             delay(1);
             digitalWrite(RST_PORT, RST_PIN, LOW);   // Отпускаем сброс
             PCD_Init();                             // Инициализируем заного
-            xprintf("Reboot\r\n");
+            // xprintf("Reboot\r\n");
             timer = const_timer;
         }
 
@@ -45,8 +43,7 @@ int main(void)
         if ( ! PICC_ReadCardSerial() ) continue;    // Если метка не читается - вернуться в начало цикла
 
         xprintf("UID: ");
-        for (uint8_t i = 0; i < 4; i++) {           // Цикл на 4 итерации
-            // xprintf("%d,", get_uid(i));   // Выводим UID по байтам
+        for (uint8_t i = 0; i < 4; i++) {
             ByteToHex(get_uid(i), &Hex);
             xprintf("0x");
             xprintf(Hex);
