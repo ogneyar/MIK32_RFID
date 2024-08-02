@@ -1,0 +1,14 @@
+{
+  "name": "RFID",
+  "version": "0.0.1",
+  "license": "Unlicense",
+  "keywords": "rfid, spi",
+  "description": "RFID Library for MFRC522 (SPI).",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://gitflic.ru/project/ogneyar/mik32_rfid.git"
+  },
+  "frameworks": "framework-mik32v2-sdk",
+  "platforms": ["mik32v2"]
+}
