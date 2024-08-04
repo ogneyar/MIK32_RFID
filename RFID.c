@@ -13,6 +13,11 @@ SCR1_TIMER_HandleTypeDef hscr1_timer; // необходимо для функц�
 typedef uint8_t bool;
 
 
+void getUid(Uid * uuid)
+{
+	// return uid;
+	*uuid = uid;
+}
 
 // Возврат байта идентификатора
 uint8_t get_uid(uint8_t number)
@@ -102,7 +107,7 @@ void RFID_init(GPIO_TypeDef *chipSelectPort, uint16_t chipSelectPin, GPIO_TypeDe
 }
 
 
-void PCD_WriteRegister(enum PCD_Register reg, byte value ) 
+void PCD_WriteRegister(ePCD_Register_t reg, byte value ) 
 {
 	digitalWrite(_chipSelectPort, _chipSelectPin, LOW);		// Select slave
 	SPI_SendData(reg);
@@ -111,7 +116,7 @@ void PCD_WriteRegister(enum PCD_Register reg, byte value )
 } 
 
 
-void PCD_WriteRegister_Array(enum PCD_Register reg, byte count, byte *values)
+void PCD_WriteRegister_Array(ePCD_Register_t reg, byte count, byte *values)
 {
 	digitalWrite(_chipSelectPort, _chipSelectPin, LOW);		// Select slave
 	SPI_SendData(reg);
@@ -122,7 +127,7 @@ void PCD_WriteRegister_Array(enum PCD_Register reg, byte count, byte *values)
 }
 
 
-byte PCD_ReadRegister(enum PCD_Register reg	)
+byte PCD_ReadRegister(ePCD_Register_t reg	)
 {
 	byte value;
 	digitalWrite(_chipSelectPort, _chipSelectPin, LOW);			// Select slave
@@ -133,7 +138,7 @@ byte PCD_ReadRegister(enum PCD_Register reg	)
 }
 
 
-void PCD_ReadRegister_Array(enum PCD_Register reg, byte count, byte *values, byte rxAlign) {
+void PCD_ReadRegister_Array(ePCD_Register_t reg, byte count, byte *values, byte rxAlign) {
 	if (count == 0) {
 		return;
 	}
@@ -158,7 +163,7 @@ void PCD_ReadRegister_Array(enum PCD_Register reg, byte count, byte *values, byt
 }
 
 
-void PCD_SetRegisterBitMask(enum PCD_Register reg, byte mask)
+void PCD_SetRegisterBitMask(ePCD_Register_t reg, byte mask)
 { 
 	byte tmp;
 	tmp = PCD_ReadRegister(reg);
@@ -166,7 +171,7 @@ void PCD_SetRegisterBitMask(enum PCD_Register reg, byte mask)
 }
 
 
-void PCD_ClearRegisterBitMask(enum PCD_Register reg, byte mask)
+void PCD_ClearRegisterBitMask(ePCD_Register_t reg, byte mask)
 {
 	byte tmp;
 	tmp = PCD_ReadRegister(reg);
@@ -174,7 +179,7 @@ void PCD_ClearRegisterBitMask(enum PCD_Register reg, byte mask)
 }
 
 
-enum StatusCode PCD_CalculateCRC(byte *data, byte length, byte *result) {
+eStatusCode_t PCD_CalculateCRC(byte *data, byte length, byte *result) {
 	PCD_WriteRegister(CommandReg, PCD_Idle);		// Stop any active command.
 	PCD_WriteRegister(DivIrqReg, 0x04);				// Clear the CRCIRq interrupt request bit
 	PCD_WriteRegister(FIFOLevelReg, 0x80);			// FlushBuffer = 1, FIFO initialization
@@ -210,7 +215,7 @@ enum StatusCode PCD_CalculateCRC(byte *data, byte length, byte *result) {
 // Functions for manipulating the MFRC522
 /////////////////////////////////////////////////////////////////////////////////////
 
-void PCD_Init() {
+void PCD_Init(void) {
 	bool hardReset = false;
 
 	pinMode(_chipSelectPort, _chipSelectPin, _OUTPUT);
@@ -251,7 +256,7 @@ void PCD_Init() {
 }
 
 
-void PCD_Reset() {
+void PCD_Reset(void) {
 	PCD_WriteRegister(CommandReg, PCD_SoftReset);
 	
 	uint8_t count = 0;
@@ -261,7 +266,7 @@ void PCD_Reset() {
 }
 
 
-void PCD_AntennaOn() {
+void PCD_AntennaOn(void) {
 	byte value = PCD_ReadRegister(TxControlReg);
 	if ((value & 0x03) != 0x03) {
 		PCD_WriteRegister(TxControlReg, value | 0x03);
@@ -269,12 +274,12 @@ void PCD_AntennaOn() {
 }
 
 
-void PCD_AntennaOff() {
+void PCD_AntennaOff(void) {
 	PCD_ClearRegisterBitMask(TxControlReg, 0x03);
 }
 
 
-byte PCD_GetAntennaGain() {
+byte PCD_GetAntennaGain(void) {
 	return PCD_ReadRegister(RFCfgReg) & (0x07<<4);
 }
 
@@ -292,28 +297,28 @@ void PCD_SetAntennaGain(byte mask) {
 // Functions for communicating with PICCs
 /////////////////////////////////////////////////////////////////////////////////////
 
-enum StatusCode PCD_TransceiveData( byte *sendData,		///< Pointer to the data to transfer to the FIFO.
-									byte sendLen,		///< Number of bytes to transfer to the FIFO.
-									byte *backData,		///< nullptr or pointer to buffer if data should be read back after executing the command.
-									byte *backLen,		///< In: Max number of bytes to write to *backData. Out: The number of bytes returned.
-									byte *validBits,	///< In/Out: The number of valid bits in the last byte. 0 for 8 valid bits. Default nullptr.
-									byte rxAlign,		///< In: Defines the bit position in backData[0] for the first bit received. Default 0.
-									byte checkCRC		///< In: True => The last two bytes of the response is assumed to be a CRC_A that must be validated.
+eStatusCode_t PCD_TransceiveData(byte *sendData,		///< Pointer to the data to transfer to the FIFO.
+								 byte sendLen,		///< Number of bytes to transfer to the FIFO.
+								 byte *backData,		///< nullptr or pointer to buffer if data should be read back after executing the command.
+								 byte *backLen,		///< In: Max number of bytes to write to *backData. Out: The number of bytes returned.
+								 byte *validBits,	///< In/Out: The number of valid bits in the last byte. 0 for 8 valid bits. Default nullptr.
+								 byte rxAlign,		///< In: Defines the bit position in backData[0] for the first bit received. Default 0.
+								 byte checkCRC		///< In: True => The last two bytes of the response is assumed to be a CRC_A that must be validated.
 ) {
 	byte waitIRq = 0x30;		// RxIRq and IdleIRq
 	return PCD_CommunicateWithPICC(PCD_Transceive, waitIRq, sendData, sendLen, backData, backLen, validBits, rxAlign, checkCRC);
 }
 
 
-enum StatusCode PCD_CommunicateWithPICC(byte command,		///< The command to execute. One of the PCD_Command enums.
-										byte waitIRq,		///< The bits in the ComIrqReg register that signals successful completion of the command.
-										byte *sendData,		///< Pointer to the data to transfer to the FIFO.
-										byte sendLen,		///< Number of bytes to transfer to the FIFO.
-										byte *backData,		///< nullptr or pointer to buffer if data should be read back after executing the command.
-										byte *backLen,		///< In: Max number of bytes to write to *backData. Out: The number of bytes returned.
-										byte *validBits,	///< In/Out: The number of valid bits in the last byte. 0 for 8 valid bits.
-										byte rxAlign,		///< In: Defines the bit position in backData[0] for the first bit received. Default 0.
-										byte checkCRC		///< In: True => The last two bytes of the response is assumed to be a CRC_A that must be validated.
+eStatusCode_t PCD_CommunicateWithPICC(byte command,		///< The command to execute. One of the PCD_Command enums.
+									  byte waitIRq,		///< The bits in the ComIrqReg register that signals successful completion of the command.
+									  byte *sendData,		///< Pointer to the data to transfer to the FIFO.
+									  byte sendLen,		///< Number of bytes to transfer to the FIFO.
+									  byte *backData,		///< nullptr or pointer to buffer if data should be read back after executing the command.
+									  byte *backLen,		///< In: Max number of bytes to write to *backData. Out: The number of bytes returned.
+									  byte *validBits,	///< In/Out: The number of valid bits in the last byte. 0 for 8 valid bits.
+									  byte rxAlign,		///< In: Defines the bit position in backData[0] for the first bit received. Default 0.
+									  byte checkCRC		///< In: True => The last two bytes of the response is assumed to be a CRC_A that must be validated.
 ) {
 	byte txLastBits = validBits ? *validBits : 0;
 	byte bitFraming = (rxAlign << 4) + txLastBits;		// RxAlign = BitFramingReg[6..4]. TxLastBits = BitFramingReg[2..0]
@@ -383,7 +388,7 @@ enum StatusCode PCD_CommunicateWithPICC(byte command,		///< The command to execu
 			return STATUS_CRC_WRONG;
 		}
 		byte controlBuffer[2];
-		enum StatusCode status = PCD_CalculateCRC(&backData[0], *backLen - 2, &controlBuffer[0]);
+		eStatusCode_t status = PCD_CalculateCRC(&backData[0], *backLen - 2, &controlBuffer[0]);
 		if (status != STATUS_OK) {
 			return status;
 		}
@@ -396,22 +401,22 @@ enum StatusCode PCD_CommunicateWithPICC(byte command,		///< The command to execu
 } // End PCD_CommunicateWithPICC()
 
 
-enum StatusCode PICC_RequestA(byte *bufferATQA, byte *bufferSize)
+eStatusCode_t PICC_RequestA(byte *bufferATQA, byte *bufferSize)
 {
 	return PICC_REQA_or_WUPA(PICC_CMD_REQA, bufferATQA, bufferSize);
 }
 
 
-enum StatusCode PICC_WakeupA(byte *bufferATQA, byte *bufferSize)
+eStatusCode_t PICC_WakeupA(byte *bufferATQA, byte *bufferSize)
 {
 	return PICC_REQA_or_WUPA(PICC_CMD_WUPA, bufferATQA, bufferSize);
 }
 
 
-enum StatusCode PICC_REQA_or_WUPA(byte command, byte *bufferATQA, byte *bufferSize)
+eStatusCode_t PICC_REQA_or_WUPA(byte command, byte *bufferATQA, byte *bufferSize)
 {
 	byte validBits;
-	enum StatusCode status;
+	eStatusCode_t status;
 	
 	if (bufferATQA == NULL || *bufferSize < 2) {	// The ATQA response is 2 bytes long.
 		return STATUS_NO_ROOM;
@@ -429,13 +434,13 @@ enum StatusCode PICC_REQA_or_WUPA(byte command, byte *bufferATQA, byte *bufferSi
 }
 
 
-enum StatusCode PICC_Select(Uid *uid, byte validBits)
+eStatusCode_t PICC_Select(Uid *uid, byte validBits)
 {
 	bool uidComplete;
 	bool selectDone;
 	bool useCascadeTag;
 	byte cascadeLevel = 1;
-	enum StatusCode result;
+	eStatusCode_t result;
 	byte count;
 	byte checkBit;
 	byte index;
@@ -595,6 +600,345 @@ enum StatusCode PICC_Select(Uid *uid, byte validBits)
 
 
 
+eStatusCode_t PICC_HaltA(void) {
+	eStatusCode_t result;
+	byte buffer[4];
+	
+	// Build command buffer
+	buffer[0] = PICC_CMD_HLTA;
+	buffer[1] = 0;
+	// Calculate CRC_A
+	result = PCD_CalculateCRC(buffer, 2, &buffer[2]);
+	if (result != STATUS_OK) {
+		return result;
+	}
+	
+	result = PCD_TransceiveData(buffer, sizeof(buffer), NULL, 0, NULL, 0, false);
+	if (result == STATUS_TIMEOUT) {
+		return STATUS_OK;
+	}
+	if (result == STATUS_OK) { // That is ironically NOT ok in this case ;-)
+		return STATUS_ERROR;
+	}
+	return result;
+} // End PICC_HaltA()
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// Functions for communicating with MIFARE PICCs
+/////////////////////////////////////////////////////////////////////////////////////
+
+eStatusCode_t PCD_Authenticate(byte command, byte blockAddr, MIFARE_Key *key, Uid *uid)
+{
+	byte waitIRq = 0x10;		// IdleIRq
+	
+	byte sendData[12];
+	sendData[0] = command;
+	sendData[1] = blockAddr;
+	for (byte i = 0; i < MF_KEY_SIZE; i++) {	// 6 key bytes
+		sendData[2+i] = key->keyByte[i];
+	}
+	
+	for (byte i = 0; i < 4; i++) {				// The last 4 bytes of the UID
+		sendData[8+i] = uid->uidByte[i+uid->size-4];
+	}
+	
+	return PCD_CommunicateWithPICC(PCD_MFAuthent, waitIRq, &sendData[0], sizeof(sendData), NULL, NULL, NULL, 0, false);
+} // End PCD_Authenticate()
+
+
+void PCD_StopCrypto1(void) {
+	PCD_ClearRegisterBitMask(Status2Reg, 0x08); // Status2Reg[7..0] bits are: TempSensClear I2CForceHS reserved reserved MFCrypto1On ModemState[2:0]
+} // End PCD_StopCrypto1()
+
+
+eStatusCode_t MIFARE_Read(byte blockAddr, byte *buffer, byte *bufferSize)
+{
+	eStatusCode_t result;
+	
+	if (buffer == NULL || *bufferSize < 18) {
+		return STATUS_NO_ROOM;
+	}
+	
+	buffer[0] = PICC_CMD_MF_READ;
+	buffer[1] = blockAddr;
+	
+	result = PCD_CalculateCRC(buffer, 2, &buffer[2]);
+	if (result != STATUS_OK) {
+		return result;
+	}
+	
+	return PCD_TransceiveData(buffer, 4, buffer, bufferSize, NULL, 0, true);
+} // End MIFARE_Read()
+
+
+eStatusCode_t MIFARE_Write(byte blockAddr, byte *buffer, byte bufferSize)
+{
+	eStatusCode_t result;
+	
+	if (buffer == NULL || bufferSize < 16) {
+		return STATUS_INVALID;
+	}
+	
+	byte cmdBuffer[2];
+	cmdBuffer[0] = PICC_CMD_MF_WRITE;
+	cmdBuffer[1] = blockAddr;
+	result = PCD_MIFARE_Transceive(cmdBuffer, 2, false); // Adds CRC_A and checks that the response is MF_ACK.
+	if (result != STATUS_OK) {
+		return result;
+	}
+	
+	result = PCD_MIFARE_Transceive(buffer, bufferSize, false); // Adds CRC_A and checks that the response is MF_ACK.
+	if (result != STATUS_OK) {
+		return result;
+	}
+	
+	return STATUS_OK;
+} // End MIFARE_Write()
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// Support functions
+/////////////////////////////////////////////////////////////////////////////////////
+
+eStatusCode_t PCD_MIFARE_Transceive(byte *sendData,	byte sendLen, byte acceptTimeout)
+{
+	eStatusCode_t result;
+	byte cmdBuffer[18]; // We need room for 16 bytes data and 2 bytes CRC_A.
+	
+	if (sendData == NULL || sendLen > 16) {
+		return STATUS_INVALID;
+	}
+	
+	memcpy(cmdBuffer, sendData, sendLen);
+	result = PCD_CalculateCRC(cmdBuffer, sendLen, &cmdBuffer[sendLen]);
+	if (result != STATUS_OK) { 
+		return result;
+	}
+	sendLen += 2;
+	
+	byte waitIRq = 0x30;		// RxIRq and IdleIRq
+	byte cmdBufferSize = sizeof(cmdBuffer);
+	byte validBits = 0;
+	result = PCD_CommunicateWithPICC(PCD_Transceive, waitIRq, cmdBuffer, sendLen, cmdBuffer, &cmdBufferSize, &validBits, 0, false);
+	if (acceptTimeout && result == STATUS_TIMEOUT) {
+		return STATUS_OK;
+	}
+	if (result != STATUS_OK) {
+		return result;
+	}
+	// The PICC must reply with a 4 bit ACK
+	if (cmdBufferSize != 1 || validBits != 4) {
+		return STATUS_ERROR;
+	}
+	if (cmdBuffer[0] != MF_ACK) {
+		return STATUS_MIFARE_NACK;
+	}
+	return STATUS_OK;
+} // End PCD_MIFARE_Transceive()
+
+
+const char * GetStatusCodeName(eStatusCode_t code)
+{
+	switch (code) {
+		case STATUS_OK:				return "Success.";
+		case STATUS_ERROR:			return "Error in communication.";
+		case STATUS_COLLISION:		return "Collision detected.";
+		case STATUS_TIMEOUT:		return "Timeout in communication.";
+		case STATUS_NO_ROOM:		return "A buffer is not big enough.";
+		case STATUS_INTERNAL_ERROR:	return "Internal error in the code. Should not happen.";
+		case STATUS_INVALID:		return "Invalid argument.";
+		case STATUS_CRC_WRONG:		return "The CRC_A does not match.";
+		case STATUS_MIFARE_NACK:	return "A MIFARE PICC responded with NAK.";
+		default:					return "Unknown error";
+	}
+} // End GetStatusCodeName()
+
+
+ePICC_Type_t PICC_GetType(byte sak)
+{
+	sak &= 0x7F;
+	switch (sak) {
+		case 0x04:	return PICC_TYPE_NOT_COMPLETE;	// UID not complete
+		case 0x09:	return PICC_TYPE_MIFARE_MINI;
+		case 0x08:	return PICC_TYPE_MIFARE_1K;
+		case 0x18:	return PICC_TYPE_MIFARE_4K;
+		case 0x00:	return PICC_TYPE_MIFARE_UL;
+		case 0x10:
+		case 0x11:	return PICC_TYPE_MIFARE_PLUS;
+		case 0x01:	return PICC_TYPE_TNP3XXX;
+		case 0x20:	return PICC_TYPE_ISO_14443_4;
+		case 0x40:	return PICC_TYPE_ISO_18092;
+		default:	return PICC_TYPE_UNKNOWN;
+	}
+} // End PICC_GetType()
+
+
+const char * PICC_GetTypeName(ePICC_Type_t piccType)
+{
+	switch (piccType) {
+		case PICC_TYPE_ISO_14443_4:		return "PICC compliant with ISO/IEC 14443-4";
+		case PICC_TYPE_ISO_18092:		return "PICC compliant with ISO/IEC 18092 (NFC)";
+		case PICC_TYPE_MIFARE_MINI:		return "MIFARE Mini, 320 bytes";
+		case PICC_TYPE_MIFARE_1K:		return "MIFARE 1KB";
+		case PICC_TYPE_MIFARE_4K:		return "MIFARE 4KB";
+		case PICC_TYPE_MIFARE_UL:		return "MIFARE Ultralight or Ultralight C";
+		case PICC_TYPE_MIFARE_PLUS:		return "MIFARE Plus";
+		case PICC_TYPE_MIFARE_DESFIRE:	return "MIFARE DESFire";
+		case PICC_TYPE_TNP3XXX:			return "MIFARE TNP3XXX";
+		case PICC_TYPE_NOT_COMPLETE:	return "SAK indicates UID is not complete.";
+		case PICC_TYPE_UNKNOWN:
+		default:						return "Unknown type";
+	}
+} // End PICC_GetTypeName()
+
+
+void PICC_DumpMifareClassicSectorToSerial(Uid *uid, MIFARE_Key *key, byte sector)
+{
+	const char Hex[2];
+	eStatusCode_t status;
+	byte firstBlock;		// Address of lowest address to dump actually last block dumped)
+	byte no_of_blocks;		// Number of blocks in sector
+	bool isSectorTrailer;	// Set to true while handling the "last" (ie highest address) in the sector.
+	
+	byte c1, c2, c3;		// Nibbles
+	byte c1_, c2_, c3_;		// Inverted nibbles
+	bool invertedError;		// True if one of the inverted nibbles did not match
+	byte g[4];				// Access bits for each of the four groups.
+	byte group;				// 0-3 - active group for access bits
+	bool firstInGroup;		// True for the first block dumped in the group
+	
+	if (sector < 32) { // Sectors 0..31 has 4 blocks each
+		no_of_blocks = 4;
+		firstBlock = sector * no_of_blocks;
+	}
+	else if (sector < 40) { // Sectors 32-39 has 16 blocks each
+		no_of_blocks = 16;
+		firstBlock = 128 + (sector - 32) * no_of_blocks;
+	}
+	else { // Illegal input, no MIFARE Classic PICC has more than 40 sectors.
+		return;
+	}
+		
+	byte byteCount;
+	byte buffer[18];
+	byte blockAddr;
+	isSectorTrailer = true;
+	invertedError = false;	// Avoid "unused variable" warning.
+	for (int8_t blockOffset = no_of_blocks - 1; blockOffset >= 0; blockOffset--) {
+		blockAddr = firstBlock + blockOffset;
+		
+		if (isSectorTrailer) {
+			if(sector < 10)
+				xprintf("   "); // Pad with spaces
+			else
+				xprintf("  "); // Pad with spaces
+			xprintf(sector);
+			xprintf("  ");
+		}
+		else {
+			xprintf("       ");
+		}
+		// Block number
+		if(blockAddr < 10)
+			xprintf("   "); // Pad with spaces
+		else {
+			if(blockAddr < 100)
+				xprintf("  "); // Pad with spaces
+			else
+				xprintf(" "); // Pad with spaces
+		}
+		xprintf("%d", blockAddr);
+		xprintf("  ");
+		// Establish encrypted communications before reading the first block
+		if (isSectorTrailer) {
+			status = PCD_Authenticate(PICC_CMD_MF_AUTH_KEY_A, firstBlock, key, uid);
+			if (status != STATUS_OK) {
+				xprintf("PCD_Authenticate() failed: ");
+				xprintf(GetStatusCodeName(status));
+				xprintf("\r\n");
+				return;
+			}
+		}
+		// Read block
+		byteCount = sizeof(buffer);
+		status = MIFARE_Read(blockAddr, buffer, &byteCount);
+		if (status != STATUS_OK) {
+			xprintf("MIFARE_Read() failed: ");
+			xprintf(GetStatusCodeName(status));
+			xprintf("\r\n");
+			continue;
+		}
+		
+		for (byte index = 0; index < 16; index++) {
+			// if(buffer[index] < 0x10)
+			// 	xprintf(" 0");
+			// else
+				xprintf(" ");
+			giveHexFromByte(buffer[index], &Hex);
+			xprintf(Hex);
+			if ((index % 4) == 3) {
+				xprintf(" ");
+			}
+		}
+		
+		if (isSectorTrailer) {
+			c1  = buffer[7] >> 4;
+			c2  = buffer[8] & 0xF;
+			c3  = buffer[8] >> 4;
+			c1_ = buffer[6] & 0xF;
+			c2_ = buffer[6] >> 4;
+			c3_ = buffer[7] & 0xF;
+			invertedError = (c1 != (~c1_ & 0xF)) || (c2 != (~c2_ & 0xF)) || (c3 != (~c3_ & 0xF));
+			g[0] = ((c1 & 1) << 2) | ((c2 & 1) << 1) | ((c3 & 1) << 0);
+			g[1] = ((c1 & 2) << 1) | ((c2 & 2) << 0) | ((c3 & 2) >> 1);
+			g[2] = ((c1 & 4) << 0) | ((c2 & 4) >> 1) | ((c3 & 4) >> 2);
+			g[3] = ((c1 & 8) >> 1) | ((c2 & 8) >> 2) | ((c3 & 8) >> 3);
+			isSectorTrailer = false;
+		}
+		
+		if (no_of_blocks == 4) {
+			group = blockOffset;
+			firstInGroup = true;
+		}
+		else {
+			group = blockOffset / 5;
+			firstInGroup = (group == 3) || (group != (blockOffset + 1) / 5);
+		}
+		
+		if (firstInGroup) {
+			xprintf(" [ ");
+			xprintf("%d", (g[group] >> 2) & 1); 
+			xprintf(" ");
+			xprintf("%d", (g[group] >> 1) & 1); 
+			xprintf(" ");
+			xprintf("%d", (g[group] >> 0) & 1); 
+			xprintf(" ] ");
+			if (invertedError) {
+				xprintf(" Inverted access bits did not match! ");
+			}
+		}
+		
+		if (group != 3 && (g[group] == 1 || g[group] == 6)) { // Not a sector trailer, a value block
+			int32_t value = ((int32_t)(buffer[3])<<24) | ((int32_t)(buffer[2])<<16) | ((int32_t)(buffer[1])<<8) | (int32_t)(buffer[0]);
+			xprintf(" Value=0x"); 
+			giveHexFromByte(value, &Hex);
+			xprintf(Hex);
+			xprintf(" Adr=0x");
+			giveHexFromByte(buffer[12], &Hex);
+			xprintf(Hex);
+		}
+		xprintf("\r\n");
+	}
+	
+	return;
+} // End PICC_DumpMifareClassicSectorToSerial()
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 // Convenience functions - does not add extra functionality
@@ -618,3 +962,4 @@ bool PICC_ReadCardSerial() {
 	enum StatusCode result = PICC_Select(&uid, 0);
 	return (result == STATUS_OK);
 }
+

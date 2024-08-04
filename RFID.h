@@ -95,6 +95,8 @@ enum PCD_Register {
 	// 						  0x3E			// reserved for production tests
 	// 						  0x3F			// reserved for production tests
 };
+
+typedef enum PCD_Register ePCD_Register_t;
 	
 // MFRC522 commands. Described in chapter 10 of the datasheet.
 enum PCD_Command {
@@ -109,6 +111,8 @@ enum PCD_Command {
 	PCD_MFAuthent 			= 0x0E,		// performs the MIFARE standard authentication as a reader
 	PCD_SoftReset			= 0x0F		// resets the MFRC522
 };
+
+typedef enum PCD_Command ePCD_Command_t;
 	
 // MFRC522 RxGain[2:0] masks, defines the receiver's signal voltage gain factor (on the PCD).
 // Described in 9.3.3.6 / table 98 of the datasheet at http://www.nxp.com/documents/data_sheet/MFRC522.pdf
@@ -125,6 +129,8 @@ enum PCD_RxGain {
 	RxGain_avg				= 0x04 << 4,	// 100b - 33 dB, average, convenience for RxGain_33dB
 	RxGain_max				= 0x07 << 4		// 111b - 48 dB, maximum, convenience for RxGain_48dB
 };
+
+typedef enum PCD_RxGain ePCD_RxGain_t;
 	
 // Commands sent to the PICC.
 enum PICC_Command {
@@ -152,12 +158,16 @@ enum PICC_Command {
 	// The PICC_CMD_MF_READ and PICC_CMD_MF_WRITE can also be used for MIFARE Ultralight.
 	PICC_CMD_UL_WRITE		= 0xA2		// Writes one 4 byte page to the PICC.
 };
+
+typedef enum PICC_Command ePICC_Command_t;
 	
 // MIFARE constants that does not fit anywhere else
 enum MIFARE_Misc {
 	MF_ACK					= 0xA,		// The MIFARE Classic uses a 4 bit ACK/NAK. Any other value than 0xA is NAK.
 	MF_KEY_SIZE				= 6			// A Mifare Crypto1 key is 6 bytes.
 };
+
+typedef enum MIFARE_Misc eMIFARE_Misc_t;
 
 // PICC types we can detect. Remember to update PICC_GetTypeName() if you add more.
 // last value set to 0xff, then compiler uses less ram, it seems some optimisations are triggered
@@ -175,6 +185,8 @@ enum PICC_Type {
 	PICC_TYPE_NOT_COMPLETE	= 0xff	// SAK indicates UID is not complete.
 };
 	
+typedef enum PICC_Type ePICC_Type_t;
+
 // Return codes from the functions in this class. Remember to update GetStatusCodeName() if you add more.
 // last value set to 0xff, then compiler uses less ram, it seems some optimisations are triggered
 enum StatusCode {
@@ -188,6 +200,8 @@ enum StatusCode {
 	STATUS_CRC_WRONG		,	// The CRC_A does not match
 	STATUS_MIFARE_NACK		= 0xff	// A MIFARE PICC responded with NAK.
 };
+
+typedef enum StatusCode eStatusCode_t;
 	
 // A struct used for passing the UID of a PICC.
 typedef struct {
@@ -201,6 +215,8 @@ typedef struct {
 } MIFARE_Key;
 
 
+
+void getUid(Uid * uuid);
 uint8_t get_uid(uint8_t number);
 static void Scr1_Timer_Init(void);
 void MILLIS_Start(uint32_t time);
@@ -215,31 +231,61 @@ void digitalWrite(GPIO_TypeDef *Port, uint32_t Pin, uint8_t SetReset);
 void RFID_init(GPIO_TypeDef *chipSelectPort, uint16_t chipSelectPin, GPIO_TypeDef *resetPowerDownPort, uint16_t resetPowerDownPin);
 	
 	
-void PCD_WriteRegister(enum PCD_Register reg, uint8_t value);
-void PCD_WriteRegister_Array(enum PCD_Register reg, uint8_t count, uint8_t *values);
-uint8_t PCD_ReadRegister(enum PCD_Register reg);
-void PCD_ReadRegister_Array(enum PCD_Register reg, uint8_t count, uint8_t *values, uint8_t rxAlign);
-void PCD_SetRegisterBitMask(enum PCD_Register reg, byte mask);
-void PCD_ClearRegisterBitMask(enum PCD_Register reg, byte mask);
-enum StatusCode PCD_CalculateCRC(uint8_t *data, uint8_t length, uint8_t *result);
+void PCD_WriteRegister(ePCD_Register_t reg, uint8_t value);
+void PCD_WriteRegister_Array(ePCD_Register_t reg, uint8_t count, uint8_t *values);
+uint8_t PCD_ReadRegister(ePCD_Register_t reg);
+void PCD_ReadRegister_Array(ePCD_Register_t reg, uint8_t count, uint8_t *values, uint8_t rxAlign);
+void PCD_SetRegisterBitMask(ePCD_Register_t reg, byte mask);
+void PCD_ClearRegisterBitMask(ePCD_Register_t reg, byte mask);
+eStatusCode_t PCD_CalculateCRC(uint8_t *data, uint8_t length, uint8_t *result);
 	
 	
-void PCD_Init();
-void PCD_Reset();
-void PCD_AntennaOn();
-void PCD_AntennaOff();
-byte PCD_GetAntennaGain();
+void PCD_Init(void);
+void PCD_Reset(void);
+void PCD_AntennaOn(void);
+void PCD_AntennaOff(void);
+byte PCD_GetAntennaGain(void);
 void PCD_SetAntennaGain(byte mask);
 	
 	
 
-enum StatusCode PCD_TransceiveData(byte *sendData, byte sendLen, byte *backData, byte *backLen, byte *validBits, byte rxAlign, byte checkCRC);
-enum StatusCode PCD_CommunicateWithPICC(byte command, byte waitIRq, byte *sendData, byte sendLen, byte *backData, byte *backLen, byte *validBits, byte rxAlign, byte checkCRC);
-enum StatusCode PICC_RequestA(byte *bufferATQA, byte *bufferSize);
-enum StatusCode PICC_WakeupA(byte *bufferATQA, byte *bufferSize);
-enum StatusCode PICC_REQA_or_WUPA(byte command, byte *bufferATQA, byte *bufferSize);
-enum StatusCode PICC_Select(Uid *uid, byte validBits);
+eStatusCode_t PCD_TransceiveData(byte *sendData, byte sendLen, byte *backData, byte *backLen, byte *validBits, byte rxAlign, byte checkCRC);
+eStatusCode_t PCD_CommunicateWithPICC(byte command, byte waitIRq, byte *sendData, byte sendLen, byte *backData, byte *backLen, byte *validBits, byte rxAlign, byte checkCRC);
+eStatusCode_t PICC_RequestA(byte *bufferATQA, byte *bufferSize);
+eStatusCode_t PICC_WakeupA(byte *bufferATQA, byte *bufferSize);
+eStatusCode_t PICC_REQA_or_WUPA(byte command, byte *bufferATQA, byte *bufferSize);
+eStatusCode_t PICC_Select(Uid *uid, byte validBits);
+eStatusCode_t PICC_HaltA(void);
 
+
+/////////////////////////////////////////////////////////////////////////////////////
+// Functions for communicating with MIFARE PICCs
+/////////////////////////////////////////////////////////////////////////////////////
+
+eStatusCode_t PCD_Authenticate(byte command, byte blockAddr, MIFARE_Key *key, Uid *uid);
+void PCD_StopCrypto1(void);
+eStatusCode_t MIFARE_Read(byte blockAddr, byte *buffer, byte *bufferSize);
+eStatusCode_t MIFARE_Write(byte blockAddr, byte *buffer, byte bufferSize);
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// Support functions
+/////////////////////////////////////////////////////////////////////////////////////
+
+// eStatusCode_t PCD_MIFARE_Transceive(byte *sendData, byte sendLen, bool acceptTimeout = false);
+eStatusCode_t PCD_MIFARE_Transceive(byte *sendData, byte sendLen, byte acceptTimeout);
+const char * GetStatusCodeName(eStatusCode_t code);
+ePICC_Type_t PICC_GetType(byte sak);
+const char * PICC_GetTypeName(ePICC_Type_t type);
+void PICC_DumpMifareClassicSectorToSerial(Uid *uid, MIFARE_Key *key, byte sector);
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+// Convenience functions - does not add extra functionality
+/////////////////////////////////////////////////////////////////////////////////////
+
+// bool PICC_IsNewCardPresent();
+// bool PICC_ReadCardSerial();
 
 
 #endif /* _RFID_H */
