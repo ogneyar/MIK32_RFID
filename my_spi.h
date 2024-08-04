@@ -1,5 +1,5 @@
-#ifndef __SPI_H_
-#define __SPI_H_
+#ifndef _MY_SPI_H_
+#define _MY_SPI_H_
 
 #include "mik32_hal_gpio.h"
 #include "mik32_hal_spi.h"
@@ -33,11 +33,11 @@ void SPI_Master_Init(void)
     hspi1.Init.ThresholdTX = SPI_THRESHOLD_DEFAULT;
 
     /* Настройки для ведущего */
-    // hspi1.Init.BaudRateDiv = SPI_BAUDRATE_DIV64; // 500КГц
+    hspi1.Init.BaudRateDiv = SPI_BAUDRATE_DIV64; // 500КГц
     // hspi1.Init.BaudRateDiv = SPI_BAUDRATE_DIV32; // 1МГц
     // hspi1.Init.BaudRateDiv = SPI_BAUDRATE_DIV16; // 2МГц
     // hspi1.Init.BaudRateDiv = SPI_BAUDRATE_DIV8; // 4МГц
-    hspi1.Init.BaudRateDiv = SPI_BAUDRATE_DIV4; // 8МГц
+    // hspi1.Init.BaudRateDiv = SPI_BAUDRATE_DIV4; // 8МГц
     hspi1.Init.Decoder = SPI_DECODER_NONE;
     hspi1.Init.ManualCS = SPI_MANUALCS_ON;
     hspi1.Init.ChipSelect = SPI_CS_NONE;      
@@ -163,4 +163,4 @@ error:
 }
 
 
-#endif /* __SPI_H_ */
+#endif /* _MY_SPI_H_ */
