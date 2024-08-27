@@ -219,9 +219,9 @@ typedef struct {
 void getUid(Uid * uuid);
 uint8_t get_uid(uint8_t number);
 static void Scr1_Timer_Init(void);
-void MILLIS_Start(uint32_t time);
-int MILLIS_GetFlag(void);
-void MILLIS_Stop(void);
+// void MILLIS_Start(uint32_t time);
+// int MILLIS_GetFlag(void);
+// void MILLIS_Stop(void);
 void delay(uint32_t time);
 void pinMode(GPIO_TypeDef *Port, uint32_t Pin, uint8_t OutInput);
 uint8_t digitalRead(GPIO_TypeDef *Port, uint32_t Pin);
