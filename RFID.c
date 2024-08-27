@@ -1,7 +1,8 @@
 
 #include "RFID.h"
-#include "mik32_hal_scr1_timer.h"
+// #include "mik32_hal_scr1_timer.h"
 #include <stddef.h>
+#include <stdbool.h>
 
 
 Uid uid;								// Used by PICC_ReadCardSerial().
@@ -9,13 +10,10 @@ uint16_t _chipSelectPin;
 GPIO_TypeDef * _chipSelectPort;
 uint16_t _resetPowerDownPin;
 GPIO_TypeDef * _resetPowerDownPort;
-// SCR1_TIMER_HandleTypeDef hscr1_timer; // необходимо для функции delay
-// typedef uint8_t bool;
 
 
 void getUid(Uid * uuid)
 {
-	// return uid;
 	*uuid = uid;
 }
 
@@ -28,38 +26,12 @@ uint8_t get_uid(uint8_t number)
 // Инициализация таймера ядра scr1
 static void Scr1_Timer_Init(void)
 {
-    // hscr1_timer.Instance = SCR1_TIMER;
-    // hscr1_timer.ClockSource = SCR1_TIMER_CLKSRC_INTERNAL; /* Источник тактирования */
-    // hscr1_timer.Divider = 0;                              /* Делитель частоты 10-битное число */
-    // HAL_SCR1_Timer_Init(&hscr1_timer);
-	
-	HAL_SCR1_Timer_Init(HAL_SCR1_TIMER_CLKSRC_INTERNAL, 0);
-	// HAL_Time_SCR1TIM_Init();
+	HAL_Time_SCR1TIM_Init();
 }
-
-// Запуск таймера
-// void MILLIS_Start(uint32_t time)
-// {
-// 	// HAL_SCR1_Timer_Start(&hscr1_timer, time);
-// 	HAL_Time_SCR1TIM_Init();
-// }
-
-// Возврат статуса таймера
-// int MILLIS_GetFlag(void)
-// {
-// 	return HAL_SCR1_Timer_GetFlagCMP(&hscr1_timer);
-// }
-
-// Остановка таймера ядра
-// void MILLIS_Stop(void)
-// {
-// 	HAL_SCR1_Timer_Disable(&hscr1_timer);
-// }
 
 // Задержка в мс
 void delay(uint32_t time)
 {
-	// HAL_DelayMs(&hscr1_timer, time);
 	HAL_Time_SCR1TIM_DelayMs(time);
 }
 

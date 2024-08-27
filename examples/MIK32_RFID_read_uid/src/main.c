@@ -12,8 +12,6 @@ int main(void)
 	InitClock();
     UART_Init(UART_0, (32000000/9600), UART_CONTROL1_TE_M | UART_CONTROL1_M_8BIT_M, 0, 0);
     xprintf("\r\nRFID test run\r\n");
-
-    SPI_Master_Init(); // Инициализация SPI
     
     RFID_init(SS_PORT, SS_PIN, RST_PORT, RST_PIN);
 
@@ -44,7 +42,7 @@ int main(void)
 
         xprintf("UID: ");
         for (uint8_t i = 0; i < 4; i++) {
-            ByteToHex(get_uid(i), &Hex);
+            giveHexFromByte(get_uid(i), &Hex); // функция из библиотеки RFID
             xprintf("0x");
             xprintf(Hex);
             xprintf(",");
@@ -80,13 +78,4 @@ void ledButton(void)
 		GPIO_2->OUTPUT |= 1 << PIN_LED; // Установка сигнала вывода 7 порта 2 в высокий уровень
 		while (GPIO_2->STATE & (1 << PIN_BUTTON)) ;
 	}
-}
-
-void ByteToHex(uint8_t sourse, char *Hex)
-{
-    char const hex_chars[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
- 
-    *Hex++ = hex_chars[(sourse & 0xF0) >> 4];
-    *Hex++ = hex_chars[sourse & 0xF];
-    *Hex = '\0';
 }

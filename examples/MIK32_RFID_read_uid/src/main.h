@@ -2,6 +2,7 @@
 #define __MAIN_H_
 
 #include "my_spi.h"
+#include "my_utils.h"
 #include "RFID.h"
 
 #define SS_PORT  GPIO_0  // Порт 0.3
@@ -15,6 +16,5 @@
 void InitClock(void);
 void ledBlink(void);
 void ledButton(void);
-void ByteToHex(uint8_t sourse, char *Hex);
 
 #endif /* __MAIN_H_ */
