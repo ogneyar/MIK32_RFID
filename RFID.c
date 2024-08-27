@@ -1,6 +1,6 @@
 
 #include "RFID.h"
-// #include "mik32_hal_scr1_timer.h"
+#include "mik32_hal_scr1_timer.h"
 #include <stddef.h>
 
 
@@ -102,6 +102,8 @@ void RFID_init(GPIO_TypeDef *chipSelectPort, uint16_t chipSelectPin, GPIO_TypeDe
 	_chipSelectPort = chipSelectPort;
 	_resetPowerDownPin = resetPowerDownPin;
 	_resetPowerDownPort = resetPowerDownPort;
+
+	SPI_Master_Init(); // Инициализация SPI
 
   	Scr1_Timer_Init(); // необходимо для функции delay	
 

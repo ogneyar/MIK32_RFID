@@ -1,5 +1,7 @@
-#ifndef _MY_SPI_H_
-#define _MY_SPI_H_
+// #ifndef _MY_SPI_H_
+// #define _MY_SPI_H_
+
+#pragma once
 
 #include "mik32_hal_gpio.h"
 #include "mik32_hal_spi.h"
@@ -163,4 +165,4 @@ error:
 }
 
 
-#endif /* _MY_SPI_H_ */
+// #endif /* _MY_SPI_H_ */

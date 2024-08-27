@@ -1,9 +1,12 @@
-#ifndef _RFID_H
-#define _RFID_H
+// #ifndef _RFID_H
+// #define _RFID_H
 
+#pragma once
 
 #include <stdint.h>
 #include "mik32_hal_gpio.h"
+// #include "my_spi.h"
+// #include "my_utils.h"
 
 
 #define SS 10 // default
@@ -288,4 +291,4 @@ void PICC_DumpMifareClassicSectorToSerial(Uid *uid, MIFARE_Key *key, byte sector
 // bool PICC_ReadCardSerial();
 
 
-#endif /* _RFID_H */
+// #endif /* _RFID_H */
