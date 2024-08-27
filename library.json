@@ -1,6 +1,6 @@
 {
   "name": "RFID",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "Unlicense",
   "keywords": "rfid, spi",
   "description": "RFID Library for MFRC522 (SPI).",

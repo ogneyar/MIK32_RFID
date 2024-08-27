@@ -9,8 +9,8 @@ uint16_t _chipSelectPin;
 GPIO_TypeDef * _chipSelectPort;
 uint16_t _resetPowerDownPin;
 GPIO_TypeDef * _resetPowerDownPort;
-SCR1_TIMER_HandleTypeDef hscr1_timer; // необходимо для функции delay
-typedef uint8_t bool;
+// SCR1_TIMER_HandleTypeDef hscr1_timer; // необходимо для функции delay
+// typedef uint8_t bool;
 
 
 void getUid(Uid * uuid)
@@ -28,34 +28,39 @@ uint8_t get_uid(uint8_t number)
 // Инициализация таймера ядра scr1
 static void Scr1_Timer_Init(void)
 {
-    hscr1_timer.Instance = SCR1_TIMER;
-    hscr1_timer.ClockSource = SCR1_TIMER_CLKSRC_INTERNAL; /* Источник тактирования */
-    hscr1_timer.Divider = 0;                              /* Делитель частоты 10-битное число */
-    HAL_SCR1_Timer_Init(&hscr1_timer);
+    // hscr1_timer.Instance = SCR1_TIMER;
+    // hscr1_timer.ClockSource = SCR1_TIMER_CLKSRC_INTERNAL; /* Источник тактирования */
+    // hscr1_timer.Divider = 0;                              /* Делитель частоты 10-битное число */
+    // HAL_SCR1_Timer_Init(&hscr1_timer);
+	
+	HAL_SCR1_Timer_Init(HAL_SCR1_TIMER_CLKSRC_INTERNAL, 0);
+	// HAL_Time_SCR1TIM_Init();
 }
 
 // Запуск таймера
-void MILLIS_Start(uint32_t time)
-{
-	HAL_SCR1_Timer_Start(&hscr1_timer, time);
-}
+// void MILLIS_Start(uint32_t time)
+// {
+// 	// HAL_SCR1_Timer_Start(&hscr1_timer, time);
+// 	HAL_Time_SCR1TIM_Init();
+// }
 
 // Возврат статуса таймера
-int MILLIS_GetFlag(void)
-{
-	return HAL_SCR1_Timer_GetFlagCMP(&hscr1_timer);
-}
+// int MILLIS_GetFlag(void)
+// {
+// 	return HAL_SCR1_Timer_GetFlagCMP(&hscr1_timer);
+// }
 
 // Остановка таймера ядра
-void MILLIS_Stop(void)
-{
-	HAL_SCR1_Timer_Disable(&hscr1_timer);
-}
+// void MILLIS_Stop(void)
+// {
+// 	HAL_SCR1_Timer_Disable(&hscr1_timer);
+// }
 
 // Задержка в мс
 void delay(uint32_t time)
 {
-	HAL_DelayMs(&hscr1_timer, time);
+	// HAL_DelayMs(&hscr1_timer, time);
+	HAL_Time_SCR1TIM_DelayMs(time);
 }
 
 // Установка режима работы заданного пина
@@ -186,7 +191,8 @@ eStatusCode_t PCD_CalculateCRC(byte *data, byte length, byte *result) {
 	PCD_WriteRegister_Array(FIFODataReg, length, data);	// Write data to the FIFO
 	PCD_WriteRegister(CommandReg, PCD_CalcCRC);		// Start the calculation
 	
-    HAL_SCR1_Timer_Start(&hscr1_timer, 89);
+    // HAL_SCR1_Timer_Start(&hscr1_timer, 89);
+	uint32_t millis = HAL_Time_SCR1TIM_Millis();
 	bool completed = false;
 
 	do {
@@ -199,9 +205,10 @@ eStatusCode_t PCD_CalculateCRC(byte *data, byte length, byte *result) {
 			break;
 		}
 	}
-	while (HAL_SCR1_Timer_GetFlagCMP(&hscr1_timer) == 0);
+	while ( ( HAL_Time_SCR1TIM_Millis() - millis ) < 89);
+	// while (HAL_SCR1_Timer_GetFlagCMP(&hscr1_timer) == 0);
 
-    HAL_SCR1_Timer_Disable(&hscr1_timer);
+    // HAL_SCR1_Timer_Disable(&hscr1_timer);
 
 	if (completed)
 		return STATUS_OK;
@@ -335,7 +342,8 @@ eStatusCode_t PCD_CommunicateWithPICC(byte command,		///< The command to execute
 		PCD_SetRegisterBitMask(BitFramingReg, 0x80);	// StartSend=1, transmission of data starts
 	}	
 
-    HAL_SCR1_Timer_Start(&hscr1_timer, 36);
+    // HAL_SCR1_Timer_Start(&hscr1_timer, 36);
+	uint32_t millis = HAL_Time_SCR1TIM_Millis();
 	bool completed = false;
 
 	do {
@@ -348,9 +356,10 @@ eStatusCode_t PCD_CommunicateWithPICC(byte command,		///< The command to execute
 			break;
 		}
 	}
-	while (HAL_SCR1_Timer_GetFlagCMP(&hscr1_timer) == 0);
+	while ( ( HAL_Time_SCR1TIM_Millis() - millis ) < 36);
+	// while (HAL_SCR1_Timer_GetFlagCMP(&hscr1_timer) == 0);
 
-    HAL_SCR1_Timer_Disable(&hscr1_timer);
+    // HAL_SCR1_Timer_Disable(&hscr1_timer);
 
 	if (!completed) {
 		return STATUS_TIMEOUT;
