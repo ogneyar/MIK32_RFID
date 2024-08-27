@@ -176,6 +176,18 @@ int main(void)
 }
 
 
+void InitClock(void)
+{
+	PM->CLK_APB_P_SET |= PM_CLOCK_APB_P_UART_0_M | PM_CLOCK_APB_P_GPIO_0_M | PM_CLOCK_APB_P_GPIO_1_M | PM_CLOCK_APB_P_GPIO_2_M; // включение тактирования GPIO
+	PM->CLK_APB_M_SET |= PM_CLOCK_APB_M_PAD_CONFIG_M | PM_CLOCK_APB_M_WU_M | PM_CLOCK_APB_M_PM_M; // включение тактирования блока для смены режима выводов
+	
+	PAD_CONFIG->PORT_2_CFG &= ~(0b11 << (2 * PIN_LED));	// Установка вывода 7 порта 2 в режим GPIO
+	PAD_CONFIG->PORT_2_CFG &= ~(0b11 << (2 * PIN_BUTTON)); // Установка вывода 6 порта 2 в режим GPIO
+
+	GPIO_2->DIRECTION_OUT = 1 << PIN_LED;	// Установка направления вывода 7 порта 2 на выход
+	GPIO_2->DIRECTION_IN = 1 << PIN_BUTTON; // Установка направления вывода 6 порта 2 на вход
+}
+
 // Вывод массива hex значений в консоль
 void dump_byte_array(byte *buffer, byte bufferSize) {
     const char Hex[2];
